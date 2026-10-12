@@ -3,11 +3,18 @@
 import matplotlib.pyplot as plt
 
 import hwostyle
+from hwostyle.colors import (
+    contrast_ratio,
+    min_perceptual_distance,
+    perceptual_distance,
+    unsafe_pairs,
+)
 from hwostyle.palettes import (
     BARBIE,
     BIOSIGNATURE,
     CYBERPUNK_DARK,
     CYBERPUNK_LIGHT,
+    ROLE_FIXED_COLORS,
     SPECTRAL,
     Palette,
 )
@@ -270,6 +277,8 @@ class TestRoles:
             hwostyle.use("dark", palette_family=family)
             colors = set(hwostyle.palette.as_list)
             for name in hwostyle.roles.names:
+                if name in ROLE_FIXED_COLORS:
+                    continue
                 assert hwostyle.roles[name] in colors
 
     def test_barbie_mode_resolves_every_role(self):
@@ -277,6 +286,8 @@ class TestRoles:
         hwostyle.use("barbie")
         colors = set(hwostyle.palette.as_list)
         for name in hwostyle.roles.names:
+            if name in ROLE_FIXED_COLORS:
+                continue
             assert hwostyle.roles[name] in colors
 
     def test_as_dict_covers_every_role(self):
@@ -300,3 +311,99 @@ class TestRoles:
         hwostyle.use("dark")
         assert "planet" in hwostyle.roles
         assert "spaceship" not in hwostyle.roles
+
+
+NEW_ROLES = ("positive", "negative", "statistic", "truth", "prior", "posterior")
+FIXED_ROLES = ("positive", "negative", "truth", "posterior")
+EXISTING_ROLES = (
+    "star",
+    "planet",
+    "disk",
+    "measured",
+    "model",
+    "reference",
+    "envelope",
+    "alert",
+    "highlight",
+)
+BACKGROUND = {"dark": "#000000", "light": "#ffffff"}
+
+
+class TestInferenceRoles:
+    """Verdict, scenery, prior and posterior roles."""
+
+    def test_every_new_role_is_defined(self):
+        """Each new name resolves in both themes (statistic is a colormap)."""
+        for mode in ("dark", "light"):
+            hwostyle.use(mode)
+            for name in NEW_ROLES:
+                if name == "statistic":
+                    assert plt.get_cmap(hwostyle.cmaps.statistic) is not None
+                else:
+                    assert hwostyle.roles[name].startswith("#")
+
+    def test_statistic_is_puor_in_every_mode(self):
+        """The statistic colormap is PuOr and differs from residual."""
+        for mode in ("dark", "light", "paper", "barbie"):
+            hwostyle.use(mode)
+            assert hwostyle.cmaps.statistic == "PuOr"
+            assert hwostyle.cmaps.statistic != hwostyle.cmaps.residual
+
+    def test_prior_follows_the_purple_slot(self):
+        """Prior is the palette purple in each theme."""
+        hwostyle.use("dark")
+        assert hwostyle.roles.prior == CYBERPUNK_DARK["purple"]
+        hwostyle.use("light")
+        assert hwostyle.roles.prior == CYBERPUNK_LIGHT["purple"]
+
+    def test_fixed_roles_hold_in_every_family_and_mode(self):
+        """Fixed-color roles ignore the palette family."""
+        for mode in ("dark", "light"):
+            hwostyle.use(mode)
+            want = {n: hwostyle.roles[n] for n in FIXED_ROLES}
+            for family in ("spectral", "biosignature"):
+                hwostyle.use(mode, palette_family=family)
+                assert {n: hwostyle.roles[n] for n in FIXED_ROLES} == want
+        hwostyle.use("barbie")
+        assert hwostyle.roles.positive == ROLE_FIXED_COLORS["positive"]["light"]
+
+    def test_new_hues_do_not_collide_with_existing_roles(self):
+        """Posterior is not model, verdicts are not alert, nothing sits on a role."""
+        for mode in ("dark", "light"):
+            hwostyle.use(mode)
+            r = hwostyle.roles
+            assert r.posterior != r.model
+            assert r.positive != r.alert
+            assert r.negative != r.alert
+            assert r.positive != r.model
+            assert r.negative != r.model
+            for new in FIXED_ROLES:
+                for old in EXISTING_ROLES:
+                    d = perceptual_distance(r[new], r[old])
+                    assert d >= 20.0, (mode, new, old, d)
+
+    def test_new_roles_are_distinct_from_each_other(self):
+        """The fixed roles and prior separate, and verdicts survive CVD."""
+        for mode in ("dark", "light"):
+            hwostyle.use(mode)
+            names = [*FIXED_ROLES, "prior"]
+            hexes = [hwostyle.roles[n] for n in names]
+            assert min_perceptual_distance(hexes)[0] >= 20.0
+            pair = [hwostyle.roles.positive, hwostyle.roles.negative]
+            assert (
+                unsafe_pairs(pair, ["positive", "negative"], contrast_floor=1.0) == []
+            )
+
+    def test_new_roles_read_against_the_background(self):
+        """Every new color keeps WCAG graphical contrast with its background."""
+        for mode, bg in BACKGROUND.items():
+            hwostyle.use(mode)
+            for name in (*FIXED_ROLES, "prior"):
+                assert contrast_ratio(hwostyle.roles[name], bg) >= 3.0, (mode, name)
+
+    def test_truth_is_a_neutral_gray(self):
+        """Truth carries no hue, so it cannot be mistaken for a data role."""
+        for mode in ("dark", "light"):
+            hwostyle.use(mode)
+            r, g, b = (int(hwostyle.roles.truth[i : i + 2], 16) for i in (1, 3, 5))
+            assert r == g == b
