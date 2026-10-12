@@ -255,7 +255,32 @@ ROLE_COLOR_NAMES = {
     "envelope": "purple",
     "alert": "red",
     "highlight": "pink",
+    # Inference roles. ``prior`` shares the purple slot with ``envelope`` and
+    # ``disk``, which do not appear beside it in the same figure.
+    "prior": "purple",
 }
+
+# Roles whose color is fixed rather than borrowed from a palette slot, because
+# no slot is free of the roles above. They hold in every palette family and
+# resolve by background: dark and light use their own hex; paper and barbie
+# are white-background modes and use the light value.
+#
+# - ``positive`` / ``negative``: verdicts (a certified claim, a rejected claim).
+#   Blue and orange survive every color vision deficiency in the pair, and
+#   neither is ``model`` pink, ``alert`` red, nor ``data`` cyan.
+# - ``posterior``: a posterior curve. An earthy tone, distinct from ``model``
+#   (posterior draws), ``prior`` and the verdict pair.
+# - ``truth``: scenery and true values, a neutral gray with 3:1 contrast on
+#   the background so it reads without competing with data.
+ROLE_FIXED_COLORS = {
+    "positive": {"dark": "#4C8DFF", "light": "#1565C0"},
+    "negative": {"dark": "#FF8C1A", "light": "#E65100"},
+    "posterior": {"dark": "#B07A4F", "light": "#8E5923"},
+    "truth": {"dark": "#9A9A9A", "light": "#757575"},
+}
+
+# Every role name, in registry order: palette-backed roles, then fixed ones.
+ALL_ROLE_NAMES = [*ROLE_COLOR_NAMES, *ROLE_FIXED_COLORS]
 
 # Canonical cyberpunk order. A family without the named color (spectral,
 # biosignature, barbie, tol) uses the slot at this index, so two roles mapped
@@ -272,7 +297,8 @@ class Roles:
 
     Roles:
         star, planet, disk, measured (alias data), model (alias predicted),
-        reference, envelope, alert, highlight.
+        reference, envelope, alert, highlight, prior, and the fixed-color
+        roles positive, negative (verdicts), posterior and truth.
     """
 
     def __init__(self, mode="dark", family=None):
@@ -298,15 +324,17 @@ class Roles:
     @property
     def names(self):
         """Role names, in registry order."""
-        return list(ROLE_COLOR_NAMES.keys())
+        return list(ALL_ROLE_NAMES)
 
     @property
     def as_dict(self):
         """All roles as a name -> hex dict."""
-        return {name: self._resolve(name) for name in ROLE_COLOR_NAMES}
+        return {name: self._resolve(name) for name in ALL_ROLE_NAMES}
 
     def _resolve(self, role):
         """Resolve one role name to a hex color for the active palette."""
+        if role in ROLE_FIXED_COLORS:
+            return ROLE_FIXED_COLORS[role]["dark" if self._mode == "dark" else "light"]
         color_name = ROLE_COLOR_NAMES[role]
         colors = self._palette.as_dict
         if color_name in colors:
@@ -318,21 +346,21 @@ class Roles:
         """Access a role color by name (e.g. roles.planet)."""
         if name.startswith("_"):
             raise AttributeError(name)
-        if name in ROLE_COLOR_NAMES:
+        if name in ALL_ROLE_NAMES:
             return self._resolve(name)
-        msg = f"No role '{name}'. Available: {list(ROLE_COLOR_NAMES.keys())}"
+        msg = f"No role '{name}'. Available: {ALL_ROLE_NAMES}"
         raise AttributeError(msg)
 
     def __getitem__(self, role):
         """Access a role color by name."""
-        if role not in ROLE_COLOR_NAMES:
-            msg = f"No role '{role}'. Available: {list(ROLE_COLOR_NAMES.keys())}"
+        if role not in ALL_ROLE_NAMES:
+            msg = f"No role '{role}'. Available: {ALL_ROLE_NAMES}"
             raise KeyError(msg)
         return self._resolve(role)
 
     def __contains__(self, role):
         """Whether a name is a known brand role."""
-        return role in ROLE_COLOR_NAMES
+        return role in ALL_ROLE_NAMES
 
     def __repr__(self):
         """String representation."""

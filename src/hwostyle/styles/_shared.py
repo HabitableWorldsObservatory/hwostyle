@@ -32,6 +32,10 @@ SHARED_CMAPS = {
     # a white-centered diverging map in every mode. Same underlying map as
     # ``residual`` today; the split is what lets either be retuned alone.
     "opd": "RdBu_r",
+    # Signed statistics and SNR maps: a diverging map centered on zero that
+    # keeps clear of the red-blue ``residual`` map, so a statistic is never
+    # mistaken for a difference image.
+    "statistic": "PuOr",
     "phase": "twilight",
     "probability": "YlOrRd_r",
     "mask": ["#FFFFFF", "#0097A7"],

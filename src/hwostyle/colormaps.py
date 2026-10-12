@@ -30,7 +30,8 @@ class Colormaps:
     Categories:
         intensity (idealized / noiseless model images, low = dark),
         readouts (detector readouts + processed data products; magma),
-        high_dynamic_range, residual, phase, probability, mask,
+        high_dynamic_range, residual, statistic (signed statistics and
+        SNR maps; PuOr), phase, probability, mask,
         brand_intensity, brand_diverging.
     """
 
