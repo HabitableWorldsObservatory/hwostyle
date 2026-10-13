@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/HabitableWorldsObservatory/hwostyle/compare/v1.5.0...v1.6.0) (2026-10-12)
+
+
+### Features
+
+* **roles:** add positive, negative, prior, posterior, truth roles and statistic colormap ([4c858fe](https://github.com/HabitableWorldsObservatory/hwostyle/commit/4c858fec42adbec3551fdbe43ed80aa1a0786131))
+
 ## [1.5.0](https://github.com/HabitableWorldsObservatory/hwostyle/compare/v1.4.0...v1.5.0) (2026-08-24)
 
 
