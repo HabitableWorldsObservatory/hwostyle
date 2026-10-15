@@ -92,8 +92,25 @@ try:
         "olive": _tol.olive,
         "pale_grey": _tol.pale_grey,
     }
+    # Tol muted, ordered by role slot (planet, model, star, reference, alert,
+    # disk): the six with at least 3:1 contrast on white come first, so every
+    # role reads on paper and none repeats. The pale ones follow for cycling.
+    _muted = tc.muted
+    TOL_MUTED = {
+        "indigo": _muted.indigo,
+        "wine": _muted.wine,
+        "olive": _muted.olive,
+        "green": _muted.green,
+        "rose": _muted.rose,
+        "purple": _muted.purple,
+        "teal": _muted.teal,
+        "sky": _muted.cyan,
+        "sand": _muted.sand,
+        "pale_grey": _muted.pale_grey,
+    }
 except ImportError:
     TOL_LIGHT = None
+    TOL_MUTED = None
 
 # =============================================================================
 # Registry: (mode, palette_family) -> color dict
@@ -116,10 +133,13 @@ PALETTE_REGISTRY = {
 }
 
 # Register tol palette if tol_colors is available
-if TOL_LIGHT is not None:
-    PALETTE_REGISTRY[("paper", "tol")] = TOL_LIGHT
+if TOL_MUTED is not None:
+    PALETTE_REGISTRY[("paper", "tol")] = TOL_MUTED
     # Also allow tol palette in light mode
-    PALETTE_REGISTRY[("light", "tol")] = TOL_LIGHT
+    PALETTE_REGISTRY[("light", "tol")] = TOL_MUTED
+    # The earlier Tol light set, kept by name for figures that chose it.
+    PALETTE_REGISTRY[("paper", "tol-light")] = TOL_LIGHT
+    PALETTE_REGISTRY[("light", "tol-light")] = TOL_LIGHT
 
 # Backwards compat: legacy aliases
 DARK_COLORS = CYBERPUNK_DARK

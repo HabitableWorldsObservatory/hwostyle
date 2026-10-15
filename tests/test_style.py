@@ -558,3 +558,25 @@ class TestDeprecatedRoles:
         with warnings.catch_warnings():
             warnings.simplefilter("error")
             hwostyle.roles.as_dict  # noqa: B018
+
+
+def test_paper_roles_use_tol_muted_and_never_repeat():
+    """Paper curve roles are six distinct Tol muted colors that read on white."""
+    import tol_colors as tc
+
+    from hwostyle.colors import contrast_ratio
+    from hwostyle.palettes import Roles
+
+    roles = Roles("paper")
+    six = [roles[r] for r in ("planet", "model", "star", "reference", "alert", "disk")]
+    assert len({c.lower() for c in six}) == 6
+    assert {c.lower() for c in six} <= {c.lower() for c in tc.muted}
+    for c in six:
+        assert contrast_ratio(c, "#FFFFFF") >= 2.9
+
+
+def test_tol_light_stays_available_by_name():
+    """The earlier Tol light set stays reachable as the tol-light family."""
+    from hwostyle.palettes import Palette
+
+    assert Palette("paper", "tol-light")["light_blue"]
