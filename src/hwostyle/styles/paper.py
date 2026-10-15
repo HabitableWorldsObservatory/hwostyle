@@ -15,11 +15,9 @@ TOL_LIGHT_COLORS = list(_tol_light)
 TOL_IRIDESCENT = tc.iridescent
 
 
+# ``intensity`` and the other image roles come from the shared table.
+# ``sequential`` keeps the native (low = light) iridescent orientation.
 CMAPS = {
-    # ``intensity`` is oriented low = dark (dark hole reads dark) to match the
-    # shared convention, so idealized images use it directly without reversing.
-    # ``sequential`` keeps the native (low = light) iridescent orientation.
-    "intensity": TOL_IRIDESCENT.reversed(),
     "sequential": TOL_IRIDESCENT,
 }
 

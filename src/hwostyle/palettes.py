@@ -9,6 +9,8 @@ under a semantic alias, so a figure can ask for ``planet`` rather than
 ``cyan`` and get one pinned color per entity across every figure.
 """
 
+import warnings
+
 from cycler import cycler
 
 # =============================================================================
@@ -252,6 +254,7 @@ ROLE_COLOR_NAMES = {
     "model": "pink",
     "predicted": "pink",
     "reference": "green",
+    # Deprecated: a band takes its parent series color at low alpha.
     "envelope": "purple",
     "alert": "red",
     "highlight": "pink",
@@ -288,6 +291,17 @@ ALL_ROLE_NAMES = [*ROLE_COLOR_NAMES, *ROLE_FIXED_COLORS]
 _ROLE_SLOT_ORDER = ["cyan", "pink", "yellow", "green", "red", "purple"]
 
 
+def _warn_deprecated_role(name):
+    """Warn when a deprecated role is read by name."""
+    if name == "envelope":
+        warnings.warn(
+            "roles.envelope is deprecated and will be removed in the next major "
+            "release; color a band with its parent series color at low alpha.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
+
+
 class Roles:
     """Mode-aware registry of brand roles.
 
@@ -297,8 +311,10 @@ class Roles:
 
     Roles:
         star, planet, disk, measured (alias data), model (alias predicted),
-        reference, envelope, alert, highlight, prior, and the fixed-color
+        reference, alert, highlight, prior, and the fixed-color
         roles positive, negative (verdicts), posterior and truth.
+        ``envelope`` is deprecated: a band takes the color of the series it
+        surrounds, at low alpha.
     """
 
     def __init__(self, mode="dark", family=None):
@@ -347,6 +363,7 @@ class Roles:
         if name.startswith("_"):
             raise AttributeError(name)
         if name in ALL_ROLE_NAMES:
+            _warn_deprecated_role(name)
             return self._resolve(name)
         msg = f"No role '{name}'. Available: {ALL_ROLE_NAMES}"
         raise AttributeError(msg)
@@ -356,6 +373,7 @@ class Roles:
         if role not in ALL_ROLE_NAMES:
             msg = f"No role '{role}'. Available: {ALL_ROLE_NAMES}"
             raise KeyError(msg)
+        _warn_deprecated_role(role)
         return self._resolve(role)
 
     def __contains__(self, role):

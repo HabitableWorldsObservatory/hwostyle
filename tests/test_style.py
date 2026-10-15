@@ -1,6 +1,12 @@
 """Tests for hwostyle palette and mode switching."""
 
+import warnings
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pytest
+import tol_colors as tc
+from matplotlib.colors import to_hex
 
 import hwostyle
 from hwostyle.colors import (
@@ -342,11 +348,11 @@ class TestInferenceRoles:
                 else:
                     assert hwostyle.roles[name].startswith("#")
 
-    def test_statistic_is_puor_in_every_mode(self):
-        """The statistic colormap is PuOr and differs from residual."""
+    def test_statistic_is_reversed_nightfall_in_every_mode(self):
+        """The statistic colormap is Tol nightfall_r and differs from residual."""
         for mode in ("dark", "light", "paper", "barbie"):
             hwostyle.use(mode)
-            assert hwostyle.cmaps.statistic == "PuOr"
+            assert hwostyle.cmaps.statistic.name == "nightfall_r"
             assert hwostyle.cmaps.statistic != hwostyle.cmaps.residual
 
     def test_prior_follows_the_purple_slot(self):
@@ -407,3 +413,148 @@ class TestInferenceRoles:
             hwostyle.use(mode)
             r, g, b = (int(hwostyle.roles.truth[i : i + 2], 16) for i in (1, 3, 5))
             assert r == g == b
+
+
+IMAGE_ROLES = (
+    "intensity",
+    "readouts",
+    "probability",
+    "pupil",
+    "mask",
+    "opd",
+    "residual",
+    "statistic",
+    "phase",
+)
+SEQUENTIAL_ROLES = ("intensity", "probability", "pupil")
+PAGE_RGB = {"light": 1.0, "paper": 1.0, "dark": 0.0}
+
+
+def _luminance(rgb):
+    """Relative luminance of an sRGB triple."""
+    lin = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in rgb[:3]]
+    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+
+
+def _samples(role, n=17):
+    """Sample the active colormap for a role at n points, rounded for comparison."""
+    cmap = plt.get_cmap(getattr(hwostyle.cmaps, role))
+    return tuple(
+        tuple(round(float(c), 3) for c in cmap(x)) for x in np.linspace(0, 1, n)
+    )
+
+
+class TestDistinctiveRoles:
+    """The image-role table: Tol maps, page-decided orientation, no shared maps."""
+
+    def test_every_role_resolves_in_every_mode(self):
+        """Each image role resolves to a usable colormap in all four modes."""
+        for mode in ("light", "dark", "paper", "barbie"):
+            hwostyle.use(mode)
+            for role in IMAGE_ROLES:
+                assert plt.get_cmap(getattr(hwostyle.cmaps, role)) is not None
+
+    def test_sequential_low_end_sits_at_the_page_end(self):
+        """Low values are the end of the map nearest the page color."""
+        for mode, page in PAGE_RGB.items():
+            hwostyle.use(mode)
+            page_lum = _luminance((page, page, page))
+            for role in SEQUENTIAL_ROLES:
+                cmap = plt.get_cmap(getattr(hwostyle.cmaps, role))
+                low = abs(_luminance(cmap(0.0)) - page_lum)
+                high = abs(_luminance(cmap(1.0)) - page_lum)
+                if role == "intensity":
+                    # Intensity is low = dark on every page (a dark hole reads dark).
+                    assert _luminance(cmap(0.0)) < _luminance(cmap(1.0))
+                else:
+                    assert low < high, (mode, role)
+
+    def test_dark_floor_of_sequential_maps_is_dark(self):
+        """On black the low end of each sequential map is a dark color."""
+        hwostyle.use("dark")
+        for role in SEQUENTIAL_ROLES:
+            cmap = plt.get_cmap(getattr(hwostyle.cmaps, role))
+            assert _luminance(cmap(0.0)) < 0.05, role
+
+    def test_no_two_image_roles_share_a_map(self):
+        """The nine image roles resolve to nine different maps in light, dark, paper."""
+        for mode in ("light", "dark", "paper"):
+            hwostyle.use(mode)
+            seen = {}
+            for role in IMAGE_ROLES:
+                key = _samples(role)
+                assert key not in seen, (mode, role, seen.get(key))
+                seen[key] = role
+
+    def test_modes_share_the_same_maps_up_to_orientation(self):
+        """Light and paper read one definition, so they are identical."""
+        hwostyle.use("light")
+        light = {role: _samples(role) for role in IMAGE_ROLES}
+        hwostyle.use("paper")
+        assert light == {role: _samples(role) for role in IMAGE_ROLES}
+
+    def test_mask_is_two_grays(self):
+        """Mask is a two-level gray pair per page, with no hue."""
+        for mode, expected in (
+            ("light", ("#cccccc", "#8c8c8c")),
+            ("paper", ("#cccccc", "#8c8c8c")),
+            ("dark", ("#333333", "#737373")),
+        ):
+            hwostyle.use(mode)
+            cmap = plt.get_cmap(hwostyle.cmaps.mask)
+            assert cmap.N == 2
+            assert (to_hex(cmap(0.0)), to_hex(cmap(1.0))) == expected
+
+    def test_diverging_maps_center_on_a_light_neutral(self):
+        """Each diverging center is light and near neutral."""
+        for mode in ("light", "dark", "paper"):
+            hwostyle.use(mode)
+            for role in ("opd", "residual", "statistic"):
+                cmap = plt.get_cmap(getattr(hwostyle.cmaps, role))
+                mid = cmap(0.5)[:3]
+                assert _luminance(mid) > 0.8, (mode, role)
+                assert max(mid) - min(mid) < 0.1, (mode, role)
+
+    def test_tol_roles_use_tol_colors(self):
+        """The Tol image roles are the tol_colors maps, not copies."""
+        hwostyle.use("light")
+        cm = hwostyle.cmaps
+        assert cm.residual is tc.BuRd
+        assert cm.probability is tc.YlOrBr
+        assert cm.pupil is tc.WhOrBr
+        assert _samples("opd") == tuple(
+            tuple(round(float(c), 3) for c in tc.PRGn.reversed()(x))
+            for x in np.linspace(0, 1, 17)
+        )
+
+    def test_brand_intensity_is_its_own_map(self):
+        """brand_intensity stays the brand ramp, distinct from probability."""
+        hwostyle.use("light")
+        assert _samples("brand_intensity") != _samples("probability")
+
+
+class TestDeprecatedRoles:
+    """high_dynamic_range and the fixed envelope role warn but still resolve."""
+
+    def test_high_dynamic_range_warns_and_names_the_replacement(self):
+        """Reading the colormap warns and points at intensity and readouts."""
+        hwostyle.use("dark")
+        with pytest.warns(DeprecationWarning, match="intensity.*readouts"):
+            value = hwostyle.cmaps.high_dynamic_range
+        assert value == "inferno"
+
+    def test_envelope_warns_by_attribute_and_by_key(self):
+        """Both access paths warn and name the parent series color."""
+        hwostyle.use("dark")
+        with pytest.warns(DeprecationWarning, match="parent series color"):
+            attr = hwostyle.roles.envelope
+        with pytest.warns(DeprecationWarning, match="parent series color"):
+            item = hwostyle.roles["envelope"]
+        assert attr == item == hwostyle.palette.purple
+
+    def test_as_dict_does_not_warn(self):
+        """Listing every role is not a use of the deprecated one."""
+        hwostyle.use("dark")
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            hwostyle.roles.as_dict  # noqa: B018
