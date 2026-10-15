@@ -28,8 +28,9 @@ def use(mode, palette_family=None):
         mode: One of "dark" (talks), "light" (papers), "paper" (tol-colors),
             or "barbie".
         palette_family: Palette family name. One of "cyberpunk", "spectral",
-            "biosignature", "tol", or "barbie". Defaults to "cyberpunk" for
-            dark/light, "tol" for paper, and "barbie" for barbie mode.
+            "biosignature", "tol" (Tol muted), "tol-light", or "barbie".
+            Defaults to "cyberpunk" for dark/light, "tol" for paper, and
+            "barbie" for barbie mode.
 
     Raises:
         ValueError: If mode or palette family is invalid.

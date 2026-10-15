@@ -34,7 +34,7 @@ colors.cyan   # '#08F7FE' in dark, '#0097A7' in light
 cmap = hwostyle.cmaps.intensity   # PSF images
 cmap = hwostyle.cmaps.residual    # difference maps
 cmap = hwostyle.cmaps.phase       # wavefront error
-cmap = hwostyle.cmaps.statistic   # signed statistics, SNR maps (PuOr)
+cmap = hwostyle.cmaps.statistic   # signed statistics, SNR maps (Tol nightfall)
 
 # Brand roles: name the entity, not the color
 hwostyle.roles.planet
@@ -49,7 +49,8 @@ hwostyle.roles.positive           # certified claim
 | Colors | Neon (high saturation) | Muted (print-safe) | RdPu pinks |
 | Line width | 2.5 | 1.5 | 1.0 |
 | Font | Sans-serif | Sans-serif | Serif |
-| Image cmap | `magma` | `viridis` | `RdPu` |
+| Readout cmap | `magma` | `magma` | `magma` |
+| Intensity cmap | Tol `iridescent_r` | Tol `iridescent_r` | `RdPu` |
 
 ## Color Palette
 
@@ -82,8 +83,28 @@ color in every family (paper and barbie use the light value).
 | `posterior` | `#B07A4F` | `#8E5923` | posterior curves (not `model`) |
 | `truth` | `#9A9A9A` | `#757575` | scenery and true values |
 
-`hwostyle.cmaps.statistic` (PuOr) is the diverging map for signed statistics
-and SNR maps; `residual` stays red-blue for difference images.
+### Image colormaps
+
+Image roles use Paul Tol maps (through `tol-colors`), the same in light, dark and
+paper modes. For the sequential maps the page decides the orientation: low
+values sit at the page end.
+
+| Role | Map | Use |
+|------|-----|-----|
+| `intensity` | Tol `iridescent_r` | idealized model images, low = dark |
+| `readouts` | `magma` | detector readouts and processed data |
+| `probability` | Tol `YlOrBr` (reversed on black) | posterior and scatter density |
+| `pupil` | Tol `WhOrBr` (reversed on black) | pupil transmission |
+| `mask` | two grays | validity masks and binary apertures |
+| `opd` | Tol `PRGn_r` | signed wavefront error |
+| `residual` | Tol `BuRd` | difference images |
+| `statistic` | Tol `nightfall_r` | signed statistics and SNR maps |
+| `phase` | `twilight` | cyclic phase |
+
+Pupil and probability share their colors, so they never appear in the same
+figure. `brand_intensity` stays the brand ramp. `cmaps.high_dynamic_range` and
+`roles.envelope` are deprecated and warn; use `intensity` or `readouts`, and the
+parent series color for a band.
 
 ### Barbie Palette
 
