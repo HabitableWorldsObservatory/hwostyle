@@ -11,9 +11,20 @@ state keeps the key and never a hex value.
 Color budget: a figure spends at most :data:`HUE_BUDGET` hues. Hue motifs
 beyond that need a second channel from the row. Reuse of a hue is allowed
 only for the pairs in :data:`SHARING_SETS`, which never appear in the same
-clip, because viewers remember colors across a whole clip. Pairs in
+clip, because viewers remember colors across a whole clip. The same list
+holds pairs that stay apart because their colors sit too close under color
+vision (local zodi with alert and with posterior). Pairs in
 :data:`EXCLUSION_PAIRS` name image color roles that share a map family and
 likewise never appear together.
+
+Two hues that co-occur and still fall under 10 CAM02-UCS dE (worst of normal
+vision and three deficiencies) are listed in :data:`ACCEPTED_PAIRS` with the
+non-color channels that must differ between their motifs. A checker accepts
+such a pair only when those channels differ.
+
+A label needs more contrast than a mark, so a row can name a role in
+``label_color`` whose ink (see :data:`hwostyle.palettes.ROLE_LABEL_INKS`)
+colors its text; :func:`motif_label_color` resolves it.
 """
 
 from dataclasses import dataclass
@@ -23,7 +34,7 @@ from matplotlib.colors import to_hex, to_rgb
 from .palettes import ALL_ROLE_NAMES, Roles
 from .styles import MODE_RC
 
-TABLE_VERSION = 1
+TABLE_VERSION = 2
 
 # At most this many hue motifs in one figure; a fifth or sixth needs a second
 # channel and a seventh is never allowed.
@@ -49,14 +60,17 @@ NEUTRAL_RANKS = {
     "truth": None,
 }
 
-# Pairs that may take one color because they never appear in the same clip.
-# Names are motif keys or role names. The declaration is per clip, not per
+# Pairs that never appear in the same clip: ones that may take one color for
+# that reason, and ones kept apart because their colors fall too close under
+# color vision. Names are motif keys or role names. The declaration is per clip, not per
 # figure: a pair must not appear in the same frame, nor in two frames of one
 # clip, because the color would change meaning between them.
 SHARING_SCOPE = "clip"
 SHARING_SETS = (
     ("disk", "prior"),
     ("local_zodi", "reference"),
+    ("local_zodi", "alert"),
+    ("local_zodi", "posterior"),
 )
 
 # Image color roles that share a map family and so never share a figure.
@@ -64,6 +78,43 @@ EXCLUSION_SCOPE = "figure"
 EXCLUSION_PAIRS = (
     ("pupil", "probability"),
     ("pupil", "statistic"),
+)
+
+
+SIGNATURE_FIELDS = ("marker", "linestyle", "hatch", "arrowstyle", "fontstyle")
+
+
+@dataclass(frozen=True)
+class AcceptedPair:
+    """Two co-occurring hues left under 10 dE on purpose.
+
+    Attributes:
+        a: Role name of the first hue.
+        b: Role name of the second hue.
+        modes: Modes in which the pair is accepted.
+        channels: Fields of :data:`SIGNATURE_FIELDS` that must differ between
+            the two motifs for the pair to be accepted.
+        de: Measured CAM02-UCS distance, worst of normal vision and
+            deuteranomaly, protanomaly and tritanomaly at severity 100.
+    """
+
+    a: str
+    b: str
+    modes: tuple[str, ...]
+    channels: tuple[str, ...]
+    de: float
+
+
+# Reference against alert in dark mode: the green cannot move (standing
+# decision) and no red clears 10 against it without crowding the model, the
+# verdict orange or the posterior. Reference is a dashed line and alert is the
+# X glyph. The verdict pair against reference green and the comparison-planet
+# purple in paper mode: circle against square (or a plain mark) tells them
+# apart when hue cannot.
+ACCEPTED_PAIRS = (
+    AcceptedPair("reference", "alert", ("dark",), ("linestyle", "marker"), 7.3),
+    AcceptedPair("reference", "negative", ("paper",), ("marker",), 6.6),
+    AcceptedPair("disk", "positive", ("paper",), ("marker",), 7.7),
 )
 
 
@@ -87,6 +138,9 @@ class MotifRow:
         on_image: ``(glyph, ink)`` used over an image, where the hue would
             collide with the map: a marker and a neutral rank. None when the
             motif is not drawn over images.
+        label_color: Role whose label ink colors this motif's text, for a hue
+            whose mark is too faint to read as words; None to label in the
+            mark color.
     """
 
     key: str
@@ -101,6 +155,7 @@ class MotifRow:
     fill_alpha: float = 0.0
     fill_alpha_dark: float | None = None
     on_image: tuple[str, str] | None = None
+    label_color: str | None = None
 
     def signature(self):
         """The channels other than color that identify this motif.
@@ -156,6 +211,7 @@ _ROWS = (
         linewidth=0.8,
         fill_alpha=0.12,
         fill_alpha_dark=0.22,
+        label_color="disk",
     ),
     MotifRow(
         "local_zodi",
@@ -165,6 +221,7 @@ _ROWS = (
         linewidth=0.8,
         fill_alpha=0.10,
         fill_alpha_dark=0.18,
+        label_color="zodi",
     ),
     MotifRow("aperture", "aperture", "hardware", marker="|", linewidth=3.0),
     MotifRow(
@@ -234,7 +291,7 @@ _ROWS = (
     ),
     MotifRow("model", "model", "model"),
     MotifRow("truth", "true value", "truth", linestyle="--"),
-    MotifRow("prior", "prior", "prior"),
+    MotifRow("prior", "prior", "prior", label_color="prior"),
     MotifRow("posterior", "posterior", "posterior", linewidth=1.6),
     MotifRow(
         "threshold",
@@ -316,6 +373,37 @@ def motif_color(key, mode, family=None):
     return neutral_color(name, mode)
 
 
+def motif_label_color(key, mode, family=None):
+    """Resolve the text color for a motif's label in ``mode``.
+
+    Args:
+        key: A key of :data:`MOTIFS`.
+        mode: One of "dark", "light", "paper" or "barbie".
+        family: Palette family, or None for the mode default.
+
+    Returns:
+        The label ink of the row's ``label_color`` role when it has one in this
+        mode and family, else the mark color from :func:`motif_color`.
+    """
+    mark = motif_color(key, mode, family)
+    role = MOTIFS[key].label_color
+    if role is None:
+        return mark
+    return Roles(mode, family=family).label_ink(role)
+
+
+def accepted_pair(a, b, mode):
+    """The accepted-pair record for two role names in ``mode``, or None.
+
+    The check ignores order.
+    """
+    pair = {a, b}
+    for rec in ACCEPTED_PAIRS:
+        if mode in rec.modes and pair == {rec.a, rec.b}:
+            return rec
+    return None
+
+
 def is_hue(key):
     """Whether a motif spends a hue (a color role) rather than a gray.
 
@@ -336,6 +424,7 @@ def never_together(a, b):
 
 
 __all__ = [
+    "ACCEPTED_PAIRS",
     "DIM_LEVELS",
     "EXCLUSION_PAIRS",
     "EXCLUSION_SCOPE",
@@ -344,10 +433,14 @@ __all__ = [
     "NEUTRAL_RANKS",
     "SHARING_SCOPE",
     "SHARING_SETS",
+    "SIGNATURE_FIELDS",
     "TABLE_VERSION",
+    "AcceptedPair",
     "MotifRow",
+    "accepted_pair",
     "is_hue",
     "motif_color",
+    "motif_label_color",
     "neutral_color",
     "never_together",
 ]

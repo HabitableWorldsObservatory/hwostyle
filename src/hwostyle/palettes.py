@@ -301,18 +301,45 @@ ROLE_COLOR_NAMES = {
 ROLE_FIXED_COLORS = {
     "positive": {"dark": "#4C8DFF", "light": "#1565C0"},
     "negative": {"dark": "#FF8C1A", "light": "#E65100"},
-    "posterior": {"dark": "#B07A4F", "light": "#8E5923"},
+    "posterior": {"dark": "#B38A61", "light": "#662506"},
     "truth": {"dark": "#9A9A9A", "light": "#757575"},
 }
 
 # Mode-specific replacements for palette-backed roles in the cyberpunk family.
 # The dark green (#00FF41) sits 5.6 CAM02-UCS dE from the star yellow under
 # deuteranopia, so the green roles use a deeper green on a dark background.
-# Other modes and families keep their palette slot, so no role invents hex
-# outside its family.
+# The other entries pull roles that fell within 10 dE of a neighbor (worst of
+# normal vision and three deficiencies) apart: the dark purple from the model
+# pink, and the light model, alert, purple and green from the posterior brown,
+# each other and the verdict pair. Other modes and families keep their palette
+# slot, so no role invents hex outside its family.
 ROLE_MODE_COLORS = {
-    "reference": {"dark": "#117733"},
-    "zodi": {"dark": "#117733"},
+    "reference": {"dark": "#117733", "light": "#7A9F56"},
+    "zodi": {"dark": "#117733", "light": "#7A9F56"},
+    "disk": {"dark": "#9251BD", "light": "#6A1B9A"},
+    "prior": {"dark": "#9251BD", "light": "#6A1B9A"},
+    "model": {"light": "#882255"},
+    "predicted": {"light": "#882255"},
+    "alert": {"light": "#B71C1C"},
+}
+
+# The same replacements for a non-cyberpunk family, keyed by (mode, family).
+# The Tol muted rose reads as pink beside the model wine, so paper takes a
+# true red.
+ROLE_FAMILY_MODE_COLORS = {
+    ("paper", "tol"): {"alert": "#C32D22"},
+}
+
+# Text color for a role whose mark is too faint to read as a label. A mark
+# needs 3:1 against the page and a label 4.5:1, so these roles draw their
+# marks in ROLE_MODE_COLORS and their words in the lighter (dark mode) or
+# deeper (light mode) ink of the same hue. A role absent here labels in its
+# mark color. Applies to the cyberpunk family only, like ROLE_MODE_COLORS.
+ROLE_LABEL_INKS = {
+    "reference": {"dark": "#15903E", "light": "#2E7D32"},
+    "zodi": {"dark": "#15903E", "light": "#2E7D32"},
+    "disk": {"dark": "#9E63C4"},
+    "prior": {"dark": "#9E63C4"},
 }
 
 # Every role name, in registry order: palette-backed roles, then fixed ones.
@@ -386,14 +413,38 @@ class Roles:
             return ROLE_FIXED_COLORS[role]["dark" if self._mode == "dark" else "light"]
         if self._palette.family == "cyberpunk":
             override = ROLE_MODE_COLORS.get(role, {}).get(self._mode)
-            if override is not None:
-                return override
+        else:
+            family_colors = ROLE_FAMILY_MODE_COLORS.get(
+                (self._mode, self._palette.family), {}
+            )
+            override = family_colors.get(role)
+        if override is not None:
+            return override
         color_name = ROLE_COLOR_NAMES[role]
         colors = self._palette.as_dict
         if color_name in colors:
             return colors[color_name]
         slot = _ROLE_SLOT_ORDER.index(color_name)
         return self._palette[slot % len(self._palette)]
+
+    def label_ink(self, role):
+        """Text color for a role: its label ink, else its mark color.
+
+        Args:
+            role: A role name.
+
+        Returns:
+            A hex string. Differs from the mark only for the roles in
+            ``ROLE_LABEL_INKS``, in the cyberpunk family.
+        """
+        if role not in ALL_ROLE_NAMES:
+            msg = f"No role '{role}'. Available: {ALL_ROLE_NAMES}"
+            raise KeyError(msg)
+        if self._palette.family == "cyberpunk":
+            ink = ROLE_LABEL_INKS.get(role, {}).get(self._mode)
+            if ink is not None:
+                return ink
+        return self._resolve(role)
 
     def __getattr__(self, name):
         """Access a role color by name (e.g. roles.planet)."""
