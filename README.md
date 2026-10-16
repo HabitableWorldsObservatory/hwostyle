@@ -79,15 +79,17 @@ color in every family (paper and barbie use the light value).
 |------|------|-------|-----|
 | `star` | yellow | yellow | stars |
 | `planet`, `measured`, `data` | cyan | cyan | planets, measured data |
-| `model`, `predicted`, `highlight` | pink | pink | model output, posterior draws |
-| `reference` | green (`#117733` in dark) | green | reference curves |
-| `zodi` | same as `reference` | same | local zodiacal light; never in a clip with `reference` |
-| `disk`, `envelope` | purple | purple | disks, envelopes |
-| `alert` | red | red | a wrong verdict, a warning |
-| `prior` | purple | purple | prior curves |
+| `model`, `predicted` | pink | `#882255` | model output, posterior draws |
+| `highlight` | pink | pink | emphasis text |
+| `reference` | green (`#117733` in dark) | `#7A9F56` | reference curves |
+| `zodi` | same as `reference` | same | local zodiacal light; never in a clip with `reference`, `alert` or `posterior` |
+| `disk` | `#9251BD` | `#6A1B9A` | disks |
+| `envelope` | purple | purple | envelopes (deprecated) |
+| `alert` | red | `#B71C1C` (`#C32D22` in paper) | a wrong verdict, a warning |
+| `prior` | `#9251BD` | `#6A1B9A` | prior curves |
 | `positive` | `#4C8DFF` | `#1565C0` | verdict: certified claim |
 | `negative` | `#FF8C1A` | `#E65100` | verdict: rejected claim |
-| `posterior` | `#B07A4F` | `#8E5923` | posterior curves (not `model`) |
+| `posterior` | `#B38A61` | `#662506` | posterior curves (not `model`) |
 | `truth` | `#9A9A9A` | `#757575` | scenery and true values |
 
 ### Motifs
@@ -97,9 +99,13 @@ disk, detector, cue, and so on) as plain data. Each row names a color role or a
 neutral rank and the non-color channels (marker, line style, hatch, arrow
 style, font style) that keep it identifiable when the color is shared, dimmed
 or lost to color vision. `motifs.motif_color(key, mode)` resolves a row's
-color; nothing in the table draws. A figure spends at most `motifs.HUE_BUDGET`
+color and `motifs.motif_label_color(key, mode)` the text color for its label
+(a lighter or deeper ink for the dark green and purple and the light green,
+whose marks are too faint to read as words); nothing in the table draws. A figure spends at most `motifs.HUE_BUDGET`
 (4) hues. `motifs.SHARING_SETS` lists hue pairs that never appear in the same
-clip (`disk` with `prior`, `local_zodi` with `reference`), and
+clip (`disk` with `prior`, `local_zodi` with `reference`, `alert` or
+`posterior`), `motifs.ACCEPTED_PAIRS` lists the few co-occurring hues left
+under 10 dE on purpose, each with the channels that must differ, and
 `motifs.EXCLUSION_PAIRS` lists image roles that never share a figure. The cue
 is a ring, band or underlay in the text color and spends no hue.
 `motifs.DIM_LEVELS` gives the opacity of a finished step: 0.35 in dark mode and

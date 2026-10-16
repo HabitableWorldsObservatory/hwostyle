@@ -356,11 +356,10 @@ class TestInferenceRoles:
             assert hwostyle.cmaps.statistic != hwostyle.cmaps.residual
 
     def test_prior_follows_the_purple_slot(self):
-        """Prior is the palette purple in each theme."""
-        hwostyle.use("dark")
-        assert hwostyle.roles.prior == CYBERPUNK_DARK["purple"]
-        hwostyle.use("light")
-        assert hwostyle.roles.prior == CYBERPUNK_LIGHT["purple"]
+        """Prior shares the disk purple in each theme (tuned off the palette)."""
+        for mode in ("dark", "light"):
+            hwostyle.use(mode)
+            assert hwostyle.roles.prior == hwostyle.roles.disk
 
     def test_fixed_roles_hold_in_every_family_and_mode(self):
         """Fixed-color roles ignore the palette family."""
@@ -570,7 +569,10 @@ def test_paper_roles_use_tol_muted_and_never_repeat():
     roles = Roles("paper")
     six = [roles[r] for r in ("planet", "model", "star", "reference", "alert", "disk")]
     assert len({c.lower() for c in six}) == 6
-    assert {c.lower() for c in six} <= {c.lower() for c in tc.muted}
+    # alert is a true red outside the Tol muted set, because muted rose reads as pink
+    assert roles.alert == "#C32D22"
+    muted = {c.lower() for c in tc.muted}
+    assert {c.lower() for c in six if c != roles.alert} <= muted
     for c in six:
         assert contrast_ratio(c, "#FFFFFF") >= 2.9
 

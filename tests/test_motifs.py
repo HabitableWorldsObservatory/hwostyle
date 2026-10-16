@@ -13,6 +13,32 @@ from hwostyle.palettes import ALL_ROLE_NAMES, Palette, Roles
 
 MODES = ("light", "dark", "paper", "barbie")
 CVD = ("deuteranomaly", "protanomaly", "tritanomaly")
+
+# Roles that share a figure, from the spohnbook explainers, the library viz
+# code and the certified-yield figures.
+FAMILIES = {
+    "scene": ["star", "planet", "disk", "zodi", "model", "alert", "truth"],
+    "inference": [
+        "planet",
+        "model",
+        "prior",
+        "posterior",
+        "reference",
+        "alert",
+        "truth",
+    ],
+    "verdict": [
+        "positive",
+        "negative",
+        "planet",
+        "disk",
+        "reference",
+        "alert",
+        "truth",
+    ],
+}
+# Role names that stand for a motif key in the never-together list.
+ROLE_OF_KEY = {"local_zodi": "zodi"}
 EXPECTED_KEYS = (
     "star starlight planet disk local_zodi aperture optics detector pixel ray "
     "integration data_flow reference_plane speckle data model truth prior "
@@ -94,7 +120,8 @@ def test_dark_reference_green_is_the_deeper_green_and_other_modes_keep_theirs():
     """Only the cyberpunk dark green is replaced."""
     assert Roles("dark").reference == "#117733"
     assert Roles("dark").zodi == "#117733"
-    assert Roles("light").reference == "#2E7D32"
+    assert Roles("light").reference == "#7A9F56"
+    assert Roles("light").label_ink("reference") == "#2E7D32"
     assert (
         Roles("dark", family="spectral").reference
         in Palette("dark", "spectral").as_list
@@ -160,24 +187,7 @@ def test_unknown_names_raise():
         motifs.neutral_color("loud", "dark")
 
 
-@pytest.mark.parametrize(
-    "mode",
-    (
-        pytest.param(
-            "light",
-            marks=pytest.mark.xfail(
-                strict=True,
-                reason=(
-                    "palette tuning pending Corey: light reference against model "
-                    "measures 7.5 dE under deuteranomaly, under the 10 that counts "
-                    "as indistinguishable"
-                ),
-            ),
-        ),
-        "dark",
-        "paper",
-    ),
-)
+@pytest.mark.parametrize("mode", ("light", "dark", "paper"))
 def test_the_first_four_hue_motifs_stay_apart_in_every_vision_type(mode, capsys):
     """The four-hue budget stays separable in every mode and vision type."""
     roles = Roles(mode)
@@ -198,3 +208,94 @@ def test_the_dark_reference_plane_fill_is_visible_on_black():
     row = motifs.MOTIFS["reference_plane"]
     assert row.fill("dark") >= 0.25
     assert row.fill("light") == 0.10
+
+
+def _co_occurring_pairs():
+    pairs = set()
+    for roles in FAMILIES.values():
+        for a, b in itertools.combinations(roles, 2):
+            pairs.add(frozenset((a, b)))
+    declared = {
+        frozenset(ROLE_OF_KEY.get(n, n) for n in p) for p in motifs.SHARING_SETS
+    }
+    return pairs - declared
+
+
+@pytest.mark.parametrize("mode", ("light", "dark", "paper"))
+def test_every_co_occurring_pair_clears_10_or_is_accepted_with_a_channel(mode):
+    """Each pair in a shared figure is 10 dE apart, or accepted with channels."""
+    roles = Roles(mode)
+    for pair in _co_occurring_pairs():
+        a, b = sorted(pair)
+        worst = _worst_de(roles[a], roles[b])
+        if worst >= 10.0:
+            continue
+        rec = motifs.accepted_pair(a, b, mode)
+        assert rec is not None, f"{mode}: {a}-{b} is {worst:.1f} dE and not accepted"
+        assert rec.channels, f"{a}-{b} is accepted without a second channel"
+        assert set(rec.channels) <= set(motifs.SIGNATURE_FIELDS)
+        assert abs(rec.de - worst) < 0.1, (a, b, rec.de, worst)
+
+
+def test_accepted_pairs_are_really_under_10_and_not_cleared_elsewhere():
+    """An accepted record names a pair that is under 10 in each of its modes."""
+    for rec in motifs.ACCEPTED_PAIRS:
+        for mode in rec.modes:
+            roles = Roles(mode)
+            assert _worst_de(roles[rec.a], roles[rec.b]) < 10.0, (rec, mode)
+    assert motifs.accepted_pair("alert", "reference", "dark") is not None
+    assert motifs.accepted_pair("alert", "reference", "light") is None
+
+
+def test_local_zodi_is_never_with_alert_or_posterior():
+    """The dust motif is declared apart from alert and posterior, per clip."""
+    assert motifs.SHARING_SCOPE == "clip"
+    for other in ("alert", "posterior"):
+        assert motifs.never_together("local_zodi", other)
+        assert motifs.never_together(other, "local_zodi")
+
+
+def test_tuned_hexes_by_mode():
+    """The chosen per-mode hexes hold."""
+    dark, light, paper = Roles("dark"), Roles("light"), Roles("paper")
+    assert dark.disk == dark.prior == "#9251BD"
+    assert dark.posterior == "#B38A61"
+    assert light.model == light.predicted == "#882255"
+    assert light.posterior == paper.posterior == "#662506"
+    assert light.disk == light.prior == "#6A1B9A"
+    assert light.alert == "#B71C1C"
+    assert light.reference == light.zodi == "#7A9F56"
+    assert paper.alert == "#C32D22"
+    assert Roles("paper", family="tol-light").alert != "#C32D22"
+    assert Roles("dark", family="spectral").disk != "#9251BD"
+
+
+@pytest.mark.parametrize(
+    ("key", "mode", "ink"),
+    [
+        ("local_zodi", "dark", "#15903E"),
+        ("disk", "dark", "#9E63C4"),
+        ("prior", "dark", "#9E63C4"),
+        ("local_zodi", "light", "#2E7D32"),
+    ],
+)
+def test_label_ink_reads_four_and_a_half_to_one_on_the_page(key, mode, ink):
+    """A label ink differs from its mark and reaches 4.5:1 on the page."""
+    page = "#000000" if mode == "dark" else "#FFFFFF"
+    got = motifs.motif_label_color(key, mode)
+    assert got == ink
+    assert got != motifs.motif_color(key, mode)
+    assert hwostyle.colors.contrast_ratio(got, page) >= 4.5
+
+
+def test_label_color_falls_back_to_the_mark():
+    """Rows without an ink, and modes or families without one, label in the mark."""
+    assert motifs.motif_label_color("star", "dark") == motifs.motif_color(
+        "star", "dark"
+    )
+    assert motifs.motif_label_color("local_zodi", "paper") == motifs.motif_color(
+        "local_zodi", "paper"
+    )
+    assert motifs.motif_label_color(
+        "disk", "dark", family="spectral"
+    ) == motifs.motif_color("disk", "dark", family="spectral")
