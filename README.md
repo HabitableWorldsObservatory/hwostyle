@@ -52,6 +52,12 @@ hwostyle.roles.positive           # certified claim
 | Readout cmap | `magma` | `magma` | `magma` |
 | Intensity cmap | Tol `iridescent_r` | Tol `iridescent_r` | `RdPu` |
 
+Paper mode (`hwostyle.use("paper")`) is the white-page mode for publications. Its
+default palette family is `tol` (Tol muted), and its curve roles follow that set
+(planet is indigo). The earlier Tol light set stays available as the `tol-light`
+family: `hwostyle.use("paper", "tol-light")`. Image colormaps are the same in every
+mode (see Image colormaps below).
+
 ## Color Palette
 
 | Name   | Dark         | Light       |
