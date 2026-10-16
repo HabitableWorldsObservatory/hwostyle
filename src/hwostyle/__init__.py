@@ -15,7 +15,7 @@ Usage::
     from hwostyle.colors import wavelength_to_rgb, contrast_ratio
 """
 
-from . import colors, core
+from . import colors, core, motifs
 from .core import barbie, current_mode, dark, light, paper, save_defaults, use
 
 try:
@@ -38,6 +38,7 @@ __all__ = [
     "current_mode",
     "dark",
     "light",
+    "motifs",
     "palette",
     "paper",
     "roles",

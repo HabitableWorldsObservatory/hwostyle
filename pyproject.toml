@@ -30,7 +30,7 @@ docs = [
     "ipython",
     "matplotlib",
 ]
-test = ["nox", "pytest", "pytest-cov"]
+test = ["nox", "pytest", "pytest-cov", "colorspacious"]
 
 [project.urls]
 Homepage = "https://github.com/HabitableWorldsObservatory/hwostyle"

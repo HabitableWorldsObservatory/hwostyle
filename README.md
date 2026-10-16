@@ -80,7 +80,8 @@ color in every family (paper and barbie use the light value).
 | `star` | yellow | yellow | stars |
 | `planet`, `measured`, `data` | cyan | cyan | planets, measured data |
 | `model`, `predicted`, `highlight` | pink | pink | model output, posterior draws |
-| `reference` | green | green | reference curves |
+| `reference` | green (`#117733` in dark) | green | reference curves |
+| `zodi` | same as `reference` | same | local zodiacal light; never in a clip with `reference` |
 | `disk`, `envelope` | purple | purple | disks, envelopes |
 | `alert` | red | red | a wrong verdict, a warning |
 | `prior` | purple | purple | prior curves |
@@ -88,6 +89,21 @@ color in every family (paper and barbie use the light value).
 | `negative` | `#FF8C1A` | `#E65100` | verdict: rejected claim |
 | `posterior` | `#B07A4F` | `#8E5923` | posterior curves (not `model`) |
 | `truth` | `#9A9A9A` | `#757575` | scenery and true values |
+
+### Motifs
+
+`hwostyle.motifs` is the default table of recurring objects (star, planet,
+disk, detector, cue, and so on) as plain data. Each row names a color role or a
+neutral rank and the non-color channels (marker, line style, hatch, arrow
+style, font style) that keep it identifiable when the color is shared, dimmed
+or lost to color vision. `motifs.motif_color(key, mode)` resolves a row's
+color; nothing in the table draws. A figure spends at most `motifs.HUE_BUDGET`
+(4) hues. `motifs.SHARING_SETS` lists hue pairs that never appear in the same
+clip (`disk` with `prior`, `local_zodi` with `reference`), and
+`motifs.EXCLUSION_PAIRS` lists image roles that never share a figure. The cue
+is a ring, band or underlay in the text color and spends no hue.
+`motifs.DIM_LEVELS` gives the opacity of a finished step: 0.35 in dark mode and
+0.5 in light and paper.
 
 ### Image colormaps
 
