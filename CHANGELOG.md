@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.7.0](https://github.com/HabitableWorldsObservatory/hwostyle/compare/v1.6.0...v1.7.0) (2026-10-16)
+
+
+### Features
+
+* **colormaps:** Tol image roles, pupil map, gray mask; deprecate high_dynamic_range and envelope ([520c42c](https://github.com/HabitableWorldsObservatory/hwostyle/commit/520c42c3024d3140c4f88a4ac3a9531de832f61f))
+* **motifs:** add default motif table and zodi role ([4355cce](https://github.com/HabitableWorldsObservatory/hwostyle/commit/4355cce386bfec3cc417f647a6131cccaf2baa57))
+* **palettes:** paper roles on Tol muted, Tol light kept as tol-light ([497a5de](https://github.com/HabitableWorldsObservatory/hwostyle/commit/497a5de4e06d7e996d280a1f358f4d8918a7886d))
+* **palettes:** tune role hexes per mode and add label inks and accepted pairs ([089503f](https://github.com/HabitableWorldsObservatory/hwostyle/commit/089503ff8bba66d4fb4c64c33dc925958a88c205))
+
+
+### Bug Fixes
+
+* **motifs:** declare pair scopes, fill dark reference plane, tighten budget test ([5847c27](https://github.com/HabitableWorldsObservatory/hwostyle/commit/5847c277946c6fdc1583157aa9e90445cb64115c))
+
 ## [1.6.0](https://github.com/HabitableWorldsObservatory/hwostyle/compare/v1.5.0...v1.6.0) (2026-10-12)
 
 
