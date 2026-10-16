@@ -160,11 +160,41 @@ def test_unknown_names_raise():
         motifs.neutral_color("loud", "dark")
 
 
-@pytest.mark.parametrize("mode", ("light", "dark", "paper"))
+@pytest.mark.parametrize(
+    "mode",
+    (
+        pytest.param(
+            "light",
+            marks=pytest.mark.xfail(
+                strict=True,
+                reason=(
+                    "palette tuning pending Corey: light reference against model "
+                    "measures 7.5 dE under deuteranomaly, under the 10 that counts "
+                    "as indistinguishable"
+                ),
+            ),
+        ),
+        "dark",
+        "paper",
+    ),
+)
 def test_the_first_four_hue_motifs_stay_apart_in_every_vision_type(mode, capsys):
     """The four-hue budget stays separable in every mode and vision type."""
     roles = Roles(mode)
     four = [roles.planet, roles.model, roles.star, roles.reference]
     worst = min(_worst_de(a, b) for a, b in itertools.combinations(four, 2))
     print(f"{mode}: first four hues, worst pair {worst:.1f} dE")
-    assert worst > 5.0
+    assert worst > 10.0
+
+
+def test_each_pair_list_carries_its_scope():
+    """A sharing pair is never in one clip; an exclusion, never in one figure."""
+    assert motifs.SHARING_SCOPE == "clip"
+    assert motifs.EXCLUSION_SCOPE == "figure"
+
+
+def test_the_dark_reference_plane_fill_is_visible_on_black():
+    """A region at 0.10 over black is invisible, so dark mode fills it harder."""
+    row = motifs.MOTIFS["reference_plane"]
+    assert row.fill("dark") >= 0.25
+    assert row.fill("light") == 0.10

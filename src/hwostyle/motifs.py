@@ -53,12 +53,14 @@ NEUTRAL_RANKS = {
 # Names are motif keys or role names. The declaration is per clip, not per
 # figure: a pair must not appear in the same frame, nor in two frames of one
 # clip, because the color would change meaning between them.
+SHARING_SCOPE = "clip"
 SHARING_SETS = (
     ("disk", "prior"),
     ("local_zodi", "reference"),
 )
 
 # Image color roles that share a map family and so never share a figure.
+EXCLUSION_SCOPE = "figure"
 EXCLUSION_PAIRS = (
     ("pupil", "probability"),
     ("pupil", "statistic"),
@@ -212,6 +214,7 @@ _ROWS = (
         fontstyle="italic",
         linewidth=0.8,
         fill_alpha=0.10,
+        fill_alpha_dark=0.25,
     ),
     MotifRow(
         "speckle",
@@ -335,9 +338,11 @@ def never_together(a, b):
 __all__ = [
     "DIM_LEVELS",
     "EXCLUSION_PAIRS",
+    "EXCLUSION_SCOPE",
     "HUE_BUDGET",
     "MOTIFS",
     "NEUTRAL_RANKS",
+    "SHARING_SCOPE",
     "SHARING_SETS",
     "TABLE_VERSION",
     "MotifRow",
