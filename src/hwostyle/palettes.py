@@ -274,6 +274,9 @@ ROLE_COLOR_NAMES = {
     "model": "pink",
     "predicted": "pink",
     "reference": "green",
+    # Local zodiacal light. It shares the reference green, and the two never
+    # appear in the same clip (see ``hwostyle.motifs.SHARING_SETS``).
+    "zodi": "green",
     # Deprecated: a band takes its parent series color at low alpha.
     "envelope": "purple",
     "alert": "red",
@@ -300,6 +303,16 @@ ROLE_FIXED_COLORS = {
     "negative": {"dark": "#FF8C1A", "light": "#E65100"},
     "posterior": {"dark": "#B07A4F", "light": "#8E5923"},
     "truth": {"dark": "#9A9A9A", "light": "#757575"},
+}
+
+# Mode-specific replacements for palette-backed roles in the cyberpunk family.
+# The dark green (#00FF41) sits 5.6 CAM02-UCS dE from the star yellow under
+# deuteranopia, so the green roles use a deeper green on a dark background.
+# Other modes and families keep their palette slot, so no role invents hex
+# outside its family.
+ROLE_MODE_COLORS = {
+    "reference": {"dark": "#117733"},
+    "zodi": {"dark": "#117733"},
 }
 
 # Every role name, in registry order: palette-backed roles, then fixed ones.
@@ -331,7 +344,7 @@ class Roles:
 
     Roles:
         star, planet, disk, measured (alias data), model (alias predicted),
-        reference, alert, highlight, prior, and the fixed-color
+        reference, zodi, alert, highlight, prior, and the fixed-color
         roles positive, negative (verdicts), posterior and truth.
         ``envelope`` is deprecated: a band takes the color of the series it
         surrounds, at low alpha.
@@ -371,6 +384,10 @@ class Roles:
         """Resolve one role name to a hex color for the active palette."""
         if role in ROLE_FIXED_COLORS:
             return ROLE_FIXED_COLORS[role]["dark" if self._mode == "dark" else "light"]
+        if self._palette.family == "cyberpunk":
+            override = ROLE_MODE_COLORS.get(role, {}).get(self._mode)
+            if override is not None:
+                return override
         color_name = ROLE_COLOR_NAMES[role]
         colors = self._palette.as_dict
         if color_name in colors:
