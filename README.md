@@ -77,7 +77,7 @@ color in every family (paper and barbie use the light value).
 
 | Role | Dark | Light | Use |
 |------|------|-------|-----|
-| `star` | yellow | yellow | stars |
+| `star` | yellow | yellow (`#92924F` in paper) | stars |
 | `planet`, `measured`, `data` | cyan | cyan | planets, measured data |
 | `model`, `predicted` | pink | `#882255` | model output, posterior draws |
 | `highlight` | pink | pink | emphasis text |

@@ -41,6 +41,18 @@ FAMILIES = {
 }
 # Role names that stand for a motif key in the never-together list.
 ROLE_OF_KEY = {"local_zodi": "zodi"}
+# Roles that are plain aliases of another role (one hex in every mode), so the
+# pair scan counts only the target.
+ALIAS_OF = {"measured": "planet", "data": "planet", "predicted": "model"}
+# Close paper pairs of a role that shares a hue with an accepted one (local
+# zodi with reference, prior with disk) and has no record of its own yet. The
+# scan lists them so that any other undeclared pair fails.
+OPEN_PAIRS = {
+    "paper": {frozenset(("zodi", "negative")), frozenset(("prior", "positive"))}
+}
+# Roles no motif row uses: a deprecated band color and an emphasis-text color.
+# They sit outside the pair scan.
+NOT_IN_TABLE = {"envelope", "highlight"}
 EXPECTED_KEYS = (
     "star starlight planet disk local_zodi aperture optics detector pixel ray "
     "integration data_flow reference_plane speckle data model truth prior "
@@ -251,6 +263,71 @@ def test_accepted_pair_matches_roles_and_modes_with_valid_channels():
             assert motifs.accepted_pair(rec.b, rec.a, mode) is None
 
 
+@pytest.mark.parametrize("mode", ("light", "dark", "paper"))
+def test_every_role_pair_clears_10_or_is_declared(mode):
+    """Every pair of roles, in or out of FAMILIES, is separated or declared.
+
+    Barbie mode is a pink-only novelty palette and is not scanned.
+    """
+    roles = Roles(mode)
+    for alias, target in ALIAS_OF.items():
+        assert roles[alias] == roles[target], (mode, alias)
+    scanned = [
+        n for n in ALL_ROLE_NAMES if n not in ALIAS_OF | dict.fromkeys(NOT_IN_TABLE)
+    ]
+    keys = {role: key for key, role in ROLE_OF_KEY.items()}
+    failures = []
+    for a, b in itertools.combinations(scanned, 2):
+        if motifs.never_together(a, b) or motifs.never_together(
+            keys.get(a, a), keys.get(b, b)
+        ):
+            continue
+        worst = _worst_de(roles[a], roles[b])
+        if worst >= 10.0:
+            continue
+        if frozenset((a, b)) in OPEN_PAIRS.get(mode, ()):
+            continue
+        rec = motifs.accepted_pair(a, b, mode)
+        if rec is None or abs(rec.de - worst) >= 0.1:
+            failures.append(f"{a}-{b}: {worst:.1f} dE, record={rec}")
+    assert not failures, f"{mode}: " + "; ".join(failures)
+
+
+def test_accepted_pairs_differ_in_every_required_motif_channel():
+    """Rows that take the two hues of a record differ in each of its channels."""
+    checked = 0
+    for rec in motifs.ACCEPTED_PAIRS:
+        rows_a = [r for r in motifs.MOTIFS.values() if r.color == rec.a]
+        rows_b = [r for r in motifs.MOTIFS.values() if r.color == rec.b]
+        for a, b in itertools.product(rows_a, rows_b):
+            checked += 1
+            for channel in rec.channels:
+                assert getattr(a, channel) != getattr(b, channel), (rec, a.key, b.key)
+    assert checked >= 2
+
+
+def test_dark_model_negative_is_accepted_only_with_both_channels():
+    """The dark solid model line stays distinct from the negative square."""
+    rec = motifs.accepted_pair("model", "negative", "dark")
+    assert rec is not None
+    assert rec.channels == ("linestyle", "marker")
+    dark = Roles("dark")
+    worst = _worst_de(dark.model, dark.negative)
+    assert worst < 10.0
+    assert abs(rec.de - worst) < 0.1
+    for mode in ("light", "paper"):
+        assert motifs.accepted_pair("model", "negative", mode) is None
+
+
+def test_paper_star_clears_every_other_role_and_reads_on_white():
+    """Paper star marks clear every other role by 10 dE and white by 3:1."""
+    roles = Roles("paper")
+    for role in ALL_ROLE_NAMES:
+        if role != "star":
+            assert _worst_de(roles.star, roles[role]) >= 10.0, role
+    assert hwostyle.colors.contrast_ratio(roles.star, "#FFFFFF") >= 3.0
+
+
 def test_accepted_pairs_are_really_under_10_and_not_cleared_elsewhere():
     """An accepted record names a pair that is under 10 in each of its modes."""
     for rec in motifs.ACCEPTED_PAIRS:
@@ -280,6 +357,10 @@ def test_tuned_hexes_by_mode():
     assert light.alert == "#B71C1C"
     assert light.reference == light.zodi == "#7A9F56"
     assert paper.alert == "#C32D22"
+    assert paper.star == "#92924F"
+    assert Roles("paper", family="tol-light").star != "#92924F"
+    assert light.star == "#F9A825"
+    assert dark.star == "#F5D300"
     assert Roles("paper", family="tol-light").alert != "#C32D22"
     assert Roles("dark", family="spectral").disk != "#9251BD"
 

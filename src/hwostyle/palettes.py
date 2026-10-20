@@ -325,9 +325,11 @@ ROLE_MODE_COLORS = {
 
 # The same replacements for a non-cyberpunk family, keyed by (mode, family).
 # The Tol muted rose reads as pink beside the model wine, so paper takes a
-# true red.
+# true red. Its olive star keeps the same hue with lower saturation
+# to clear the fixed negative orange by 10 dE while retaining
+# 3:1 contrast on white. Other families keep their palette slots.
 ROLE_FAMILY_MODE_COLORS = {
-    ("paper", "tol"): {"alert": "#C32D22"},
+    ("paper", "tol"): {"alert": "#C32D22", "star": "#92924F"},
 }
 
 # Text color for a role whose mark is too faint to read as a label. A mark

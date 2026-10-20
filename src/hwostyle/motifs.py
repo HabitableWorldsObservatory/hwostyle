@@ -34,7 +34,7 @@ from matplotlib.colors import to_hex, to_rgb
 from .palettes import ALL_ROLE_NAMES, Roles
 from .styles import MODE_RC
 
-TABLE_VERSION = 2
+TABLE_VERSION = 3
 
 # At most this many hue motifs in one figure; a fifth or sixth needs a second
 # channel and a seventh is never allowed.
@@ -112,9 +112,12 @@ class AcceptedPair:
 # dark) needs a different line style and marker, for example a dashed
 # reference line against the alert X. Reference/negative (6.6) and
 # disk/positive (7.7), in paper mode, need a different marker: the negative
-# square or the positive circle against a plain line or region.
+# square or the positive circle against a plain line or region. Model/negative
+# (9.6, dark) needs a different line style and marker: a solid model line
+# against the negative square.
 ACCEPTED_PAIRS = (
     AcceptedPair("reference", "alert", ("dark",), ("linestyle", "marker"), 7.3),
+    AcceptedPair("model", "negative", ("dark",), ("linestyle", "marker"), 9.6),
     AcceptedPair("reference", "negative", ("paper",), ("marker",), 6.6),
     AcceptedPair("disk", "positive", ("paper",), ("marker",), 7.7),
 )

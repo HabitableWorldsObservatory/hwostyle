@@ -560,7 +560,7 @@ class TestDeprecatedRoles:
 
 
 def test_paper_roles_use_tol_muted_and_never_repeat():
-    """Paper curve roles are six distinct Tol muted colors that read on white."""
+    """Paper curve roles use distinct Tol muted colors with two tuned marks."""
     import tol_colors as tc
 
     from hwostyle.colors import contrast_ratio
@@ -569,10 +569,11 @@ def test_paper_roles_use_tol_muted_and_never_repeat():
     roles = Roles("paper")
     six = [roles[r] for r in ("planet", "model", "star", "reference", "alert", "disk")]
     assert len({c.lower() for c in six}) == 6
-    # alert is a true red outside the Tol muted set, because muted rose reads as pink
+    # Alert reads as true red, and the olive star clears the negative orange.
     assert roles.alert == "#C32D22"
+    assert roles.star == "#92924F"
     muted = {c.lower() for c in tc.muted}
-    assert {c.lower() for c in six if c != roles.alert} <= muted
+    assert {c.lower() for c in six if c not in (roles.alert, roles.star)} <= muted
     for c in six:
         assert contrast_ratio(c, "#FFFFFF") >= 2.9
 
