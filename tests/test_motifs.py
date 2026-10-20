@@ -44,12 +44,6 @@ ROLE_OF_KEY = {"local_zodi": "zodi"}
 # Roles that are plain aliases of another role (one hex in every mode), so the
 # pair scan counts only the target.
 ALIAS_OF = {"measured": "planet", "data": "planet", "predicted": "model"}
-# Close paper pairs of a role that shares a hue with an accepted one (local
-# zodi with reference, prior with disk) and has no record of its own yet. The
-# scan lists them so that any other undeclared pair fails.
-OPEN_PAIRS = {
-    "paper": {frozenset(("zodi", "negative")), frozenset(("prior", "positive"))}
-}
 # Roles no motif row uses: a deprecated band color and an emphasis-text color.
 # They sit outside the pair scan.
 NOT_IN_TABLE = {"envelope", "highlight"}
@@ -284,8 +278,6 @@ def test_every_role_pair_clears_10_or_is_declared(mode):
             continue
         worst = _worst_de(roles[a], roles[b])
         if worst >= 10.0:
-            continue
-        if frozenset((a, b)) in OPEN_PAIRS.get(mode, ()):
             continue
         rec = motifs.accepted_pair(a, b, mode)
         if rec is None or abs(rec.de - worst) >= 0.1:
