@@ -397,7 +397,14 @@ def motif_label_color(key, mode, family=None):
 def accepted_pair(a, b, mode):
     """The accepted-pair record for two role names in ``mode``, or None.
 
-    The check ignores order.
+    This matches role names and mode only, ignoring role order. A record is a
+    permission, not a verdict: a checker with the two motifs must also confirm
+    that they differ in every field of the record's ``channels`` before it
+    accepts the pair.
+
+    Returns:
+        The matching :class:`AcceptedPair` record, or None if the pair is not
+        listed for ``mode``.
     """
     pair = {a, b}
     for rec in ACCEPTED_PAIRS:

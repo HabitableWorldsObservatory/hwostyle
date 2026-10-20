@@ -239,6 +239,18 @@ def test_every_co_occurring_pair_clears_10_or_is_accepted_with_a_channel(mode):
         assert abs(rec.de - worst) < 0.1, (a, b, rec.de, worst)
 
 
+def test_accepted_pair_matches_roles_and_modes_with_valid_channels():
+    """Records match both role orders only in their listed modes."""
+    for rec in motifs.ACCEPTED_PAIRS:
+        assert set(rec.channels) <= set(motifs.SIGNATURE_FIELDS)
+        for mode in rec.modes:
+            assert motifs.accepted_pair(rec.a, rec.b, mode) is rec
+            assert motifs.accepted_pair(rec.b, rec.a, mode) is rec
+        for mode in set(MODES) - set(rec.modes):
+            assert motifs.accepted_pair(rec.a, rec.b, mode) is None
+            assert motifs.accepted_pair(rec.b, rec.a, mode) is None
+
+
 def test_accepted_pairs_are_really_under_10_and_not_cleared_elsewhere():
     """An accepted record names a pair that is under 10 in each of its modes."""
     for rec in motifs.ACCEPTED_PAIRS:
