@@ -14,8 +14,10 @@ from hwostyle.palettes import ALL_ROLE_NAMES, Palette, Roles
 MODES = ("light", "dark", "paper", "barbie")
 CVD = ("deuteranomaly", "protanomaly", "tritanomaly")
 
-# Roles that share a figure, from the spohnbook explainers, the library viz
-# code and the certified-yield figures.
+# Roles that can appear together in one figure: a scene, an inference plot or
+# a verdict plot. A pair within a family must stay separable unless the table
+# declares it a sharing pair (never drawn together) or accepts it with a
+# second channel.
 FAMILIES = {
     "scene": ["star", "planet", "disk", "zodi", "model", "alert", "truth"],
     "inference": [

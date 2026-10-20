@@ -105,12 +105,14 @@ class AcceptedPair:
     de: float
 
 
-# Reference against alert in dark mode: the green cannot move (standing
-# decision) and no red clears 10 against it without crowding the model, the
-# verdict orange or the posterior. Reference is a dashed line and alert is the
-# X glyph. The verdict pair against reference green and the comparison-planet
-# purple in paper mode: circle against square (or a plain mark) tells them
-# apart when hue cannot.
+# These pairs measure below the usual separation of 10 CAM02-UCS (worst case
+# over normal vision and the three anomalies at severity 100; see
+# AcceptedPair), so each is accepted only in its listed mode and only when the
+# two motifs also differ in every channel of the record. Reference/alert (7.3,
+# dark) needs a different line style and marker, for example a dashed
+# reference line against the alert X. Reference/negative (6.6) and
+# disk/positive (7.7), in paper mode, need a different marker: the negative
+# square or the positive circle against a plain line or region.
 ACCEPTED_PAIRS = (
     AcceptedPair("reference", "alert", ("dark",), ("linestyle", "marker"), 7.3),
     AcceptedPair("reference", "negative", ("paper",), ("marker",), 6.6),

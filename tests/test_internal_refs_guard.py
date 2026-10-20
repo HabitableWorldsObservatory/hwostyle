@@ -1,5 +1,6 @@
 """Tests for the internal-reference commit guard (tools/check_internal_refs.py)."""
 
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -58,3 +59,23 @@ def test_tracked_repo_files_are_clean():
     assert files, "expected tracked text files"
     result = run_guard(*files)
     assert result.returncode == 0, result.stdout
+
+
+def test_motif_files_have_no_internal_references():
+    """Motif source and tests explain their constraints within the repository."""
+    # Split so the workspace names are not spelled out in this file.
+    terms = (
+        "standing " + "deci" + "sion",
+        "spohn" + "book",
+        "certified-" + "yield",
+        "explain" + "ers",
+        r"\b" + "deci" + r"sions?\b",
+    )
+    pattern = re.compile("|".join(terms), re.IGNORECASE)
+    hits = []
+    for relative_path in ("src/hwostyle/motifs.py", "tests/test_motifs.py"):
+        lines = (REPO / relative_path).read_text(encoding="utf-8").splitlines()
+        for lineno, line in enumerate(lines, start=1):
+            for match in pattern.finditer(line):
+                hits.append(f"{relative_path}:{lineno}: {match.group(0)}")
+    assert not hits, "\n".join(hits)
