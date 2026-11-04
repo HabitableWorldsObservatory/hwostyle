@@ -7,7 +7,7 @@ name = "hwostyle"
 description = "Matplotlib style sheets and utilities for HWO direct imaging figures. Dual-mode dark (talks) and light (papers) themes with domain-specific colormaps."
 authors = [{ name = "Corey Spohn", email = "corey.a.spohn@nasa.gov" }]
 dynamic = ['readme', 'version']
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = { file = "LICENSE" }
 classifiers = [
     "Development Status :: 3 - Alpha",
