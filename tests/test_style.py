@@ -282,19 +282,21 @@ class TestRoles:
         for family in ("spectral", "biosignature"):
             hwostyle.use("dark", palette_family=family)
             colors = set(hwostyle.palette.as_list)
+            role_colors = hwostyle.roles.as_dict
             for name in hwostyle.roles.names:
                 if name in ROLE_FIXED_COLORS:
                     continue
-                assert hwostyle.roles[name] in colors
+                assert role_colors[name] in colors
 
     def test_barbie_mode_resolves_every_role(self):
         """Barbie mode has five colors and still resolves all roles."""
         hwostyle.use("barbie")
         colors = set(hwostyle.palette.as_list)
+        role_colors = hwostyle.roles.as_dict
         for name in hwostyle.roles.names:
             if name in ROLE_FIXED_COLORS:
                 continue
-            assert hwostyle.roles[name] in colors
+            assert role_colors[name] in colors
 
     def test_as_dict_covers_every_role(self):
         """as_dict returns one entry per registered role."""
@@ -382,9 +384,10 @@ class TestInferenceRoles:
             assert r.negative != r.alert
             assert r.positive != r.model
             assert r.negative != r.model
+            role_colors = r.as_dict
             for new in FIXED_ROLES:
                 for old in EXISTING_ROLES:
-                    d = perceptual_distance(r[new], r[old])
+                    d = perceptual_distance(r[new], role_colors[old])
                     assert d >= 20.0, (mode, new, old, d)
 
     def test_new_roles_are_distinct_from_each_other(self):

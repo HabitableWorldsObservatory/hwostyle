@@ -314,9 +314,10 @@ def test_dark_model_negative_is_accepted_only_with_both_channels():
 def test_paper_star_clears_every_other_role_and_reads_on_white():
     """Paper star marks clear every other role by 10 dE and white by 3:1."""
     roles = Roles("paper")
+    role_colors = roles.as_dict
     for role in ALL_ROLE_NAMES:
         if role != "star":
-            assert _worst_de(roles.star, roles[role]) >= 10.0, role
+            assert _worst_de(roles.star, role_colors[role]) >= 10.0, role
     assert hwostyle.colors.contrast_ratio(roles.star, "#FFFFFF") >= 3.0
 
 

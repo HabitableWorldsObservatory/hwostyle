@@ -73,6 +73,15 @@ select = ["B", "D", "E", "F", "I", "UP", "RUF"]
 convention = "google"
 
 [tool.pytest.ini_options]
+filterwarnings = [
+    "error",
+    # tol_colors creates colormaps with Matplotlib's pending-deprecated set_bad API.
+    "ignore:The set_bad function will be deprecated.*:PendingDeprecationWarning:tol_colors",
+    # Matplotlib 3.8 uses legacy pyparsing names while importing font and mathtext parsers.
+    "ignore:'(parseString|resetCache|enablePackrat)' deprecated - use.*:pyparsing.warnings.PyparsingDeprecationWarning:matplotlib[.](_fontconfig_pattern|_mathtext)",
+    # colorspacious 1.1.2 has unescaped TeX in a docstring, warned on Python 3.12.
+    "ignore:invalid escape sequence.*:SyntaxWarning:.*colorspacious[./]comparison",
+]
 markers = [
     "medium: tests with a 30-second default time budget",
     "slow: tests with a 300-second default time budget, run nightly",
