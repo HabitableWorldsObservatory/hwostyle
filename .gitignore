@@ -210,5 +210,7 @@ __marimo__/
 .DS_Store
 input/
 output/
-scripts/
+/scripts/
 *.png
+.claude/
+.jax_cache/
