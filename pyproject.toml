@@ -17,7 +17,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Astronomy",
     "Topic :: Scientific/Engineering :: Visualization",
 ]
-dependencies = ["matplotlib>=3.8", "cycler", "tol-colors"]
+dependencies = ["matplotlib>=3.8", "cycler", "tol-colors", "numpy"]
 
 [project.optional-dependencies]
 dev = ["pre-commit"]
@@ -26,11 +26,20 @@ docs = [
     "myst-nb",
     "sphinx-book-theme",
     "sphinx-autoapi",
-    "sphinx_autodoc_typehints",
     "ipython",
     "matplotlib",
 ]
-test = ["nox", "pytest", "pytest-cov", "colorspacious"]
+test = [
+    "pytest",
+    "hypothesis",
+    "pytest-cov",
+    "pytest-xdist",
+    "pytest-testmon",
+    "pytest-markdown-docs",
+    "pytest-timeout",
+    "pytest-fail-slow",
+    "colorspacious",
+]
 
 [project.urls]
 Homepage = "https://github.com/HabitableWorldsObservatory/hwostyle"
@@ -57,5 +66,31 @@ exclude = ["/docs", "/tests", "/.github"]
 [tool.ruff.lint]
 select = ["B", "D", "E", "F", "I", "UP", "RUF"]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]  # test functions / fixtures don't need docstrings
+
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.pytest.ini_options]
+markers = [
+    "medium: tests with a 30-second default time budget",
+    "slow: tests with a 300-second default time budget, run nightly",
+]
+
+[tool.testbudget]
+library = "hwostyle"
+mode = "report"
+unit_s = 5
+medium_s = 30
+slow_s = 300
+
+[tool.deptry]
+known_first_party = ["hwostyle"]
+optional_dependencies_dev_groups = ["dev", "docs", "test"]
+
+[tool.ty.environment]
+python-version = "3.11"
+
+[tool.ty.src]
+include = ["src/hwostyle"]
