@@ -1,0 +1,4 @@
+[codespell]
+skip = .git,*.ipynb,uv.lock,*/_build,*.fits
+# add domain words only if codespell flags them (clean on the libraries sampled)
+# ignore-words-list =
