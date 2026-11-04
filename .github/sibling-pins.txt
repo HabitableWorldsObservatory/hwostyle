@@ -1,0 +1,3 @@
+# Unreleased sibling libraries, applied as uv overrides so each is installed at a pinned main
+# commit whatever version bounds other packages declare (a breaking change waiting for its
+# release tag reports the old major version). Move a pin deliberately; drop it once PyPI covers it.
