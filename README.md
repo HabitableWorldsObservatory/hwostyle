@@ -1,5 +1,12 @@
 # hwostyle
 
+<p align="center">
+  <a href="https://pypi.org/project/hwostyle/"><img src="https://img.shields.io/pypi/v/hwostyle.svg?style=flat-square&logo=pypi" alt="PyPI"/></a>
+  <a href="https://github.com/HabitableWorldsObservatory/hwostyle/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/HabitableWorldsObservatory/hwostyle/ci.yml?branch=main&style=flat-square&logo=github&label=tests" alt="Tests"/></a>
+  <a href="https://github.com/HabitableWorldsObservatory/hwostyle/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License"/></a>
+  <a href="https://github.com/HabitableWorldsObservatory/hwostyle/blob/main/pyproject.toml"><img src="https://img.shields.io/badge/python-3.12%2B-blue.svg?style=flat-square&logo=python" alt="Python 3.12+"/></a>
+</p>
+
 Matplotlib style sheets and utilities for HWO direct imaging figures.
 
 ## Installation
