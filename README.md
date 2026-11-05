@@ -28,17 +28,17 @@ hwostyle.use("dark")
 
 # Access the palette
 colors = hwostyle.palette
-colors.cyan   # '#08F7FE' in dark, '#0097A7' in light
+colors.cyan  # '#08F7FE' in dark, '#0097A7' in light
 
 # Use domain-specific colormaps
-cmap = hwostyle.cmaps.intensity   # PSF images
-cmap = hwostyle.cmaps.residual    # difference maps
-cmap = hwostyle.cmaps.phase       # wavefront error
-cmap = hwostyle.cmaps.statistic   # signed statistics, SNR maps (Tol nightfall)
+cmap = hwostyle.cmaps.intensity  # PSF images
+cmap = hwostyle.cmaps.residual  # difference maps
+cmap = hwostyle.cmaps.phase  # wavefront error
+cmap = hwostyle.cmaps.statistic  # signed statistics, SNR maps (Tol nightfall)
 
 # Brand roles: name the entity, not the color
 hwostyle.roles.planet
-hwostyle.roles.positive           # certified claim
+hwostyle.roles.positive  # certified claim
 ```
 
 ## Modes
