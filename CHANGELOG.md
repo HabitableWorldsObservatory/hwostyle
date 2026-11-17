@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0](https://github.com/HabitableWorldsObservatory/hwostyle/compare/v1.7.0...v2.0.0) (2026-11-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove deprecated palette, role and colormap aliases
+
+### Code Refactoring
+
+* remove deprecated palette, role and colormap aliases ([b0fcb2d](https://github.com/HabitableWorldsObservatory/hwostyle/commit/b0fcb2dfb0b58897df382c169ef4027aa9fdaa71))
+
 ## [1.7.0](https://github.com/HabitableWorldsObservatory/hwostyle/compare/v1.6.0...v1.7.0) (2026-10-20)
 
 
