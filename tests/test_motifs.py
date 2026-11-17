@@ -44,9 +44,9 @@ ROLE_OF_KEY = {"local_zodi": "zodi"}
 # Roles that are plain aliases of another role (one hex in every mode), so the
 # pair scan counts only the target.
 ALIAS_OF = {"measured": "planet", "data": "planet", "predicted": "model"}
-# Roles no motif row uses: a deprecated band color and an emphasis-text color.
+# The emphasis-text color is not used by a motif row.
 # They sit outside the pair scan.
-NOT_IN_TABLE = {"envelope", "highlight"}
+NOT_IN_TABLE = {"highlight"}
 EXPECTED_KEYS = (
     "star starlight planet disk local_zodi aperture optics detector pixel ray "
     "integration data_flow reference_plane speckle data model truth prior "

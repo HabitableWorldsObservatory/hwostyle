@@ -2,7 +2,6 @@
 
 CMAPS = {
     "intensity": "RdPu",
-    "high_dynamic_range": "RdPu",
     "probability": "RdPu",
     "mask": ["#FFFFFF", "#D42A92"],
     "brand_intensity": ["#FFFFFF", "#D42A92", "#5E006F"],

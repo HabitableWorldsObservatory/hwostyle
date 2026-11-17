@@ -30,8 +30,6 @@ SHARED_CMAPS = {
     # visual language; idealized noiseless model images use ``intensity``.
     "intensity": tc.iridescent.reversed(),
     "readouts": "magma",
-    # Deprecated: use ``intensity`` or ``readouts``. Kept for one minor release.
-    "high_dynamic_range": "inferno",
     "residual": tc.BuRd,
     # Signed wavefront error. A separate semantic key from ``residual``
     # (ratio / residual semantics) and from ``phase`` (the cyclic map, for

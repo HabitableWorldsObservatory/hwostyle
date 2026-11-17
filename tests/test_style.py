@@ -1,10 +1,7 @@
 """Tests for hwostyle palette and mode switching."""
 
-import warnings
-
 import matplotlib.pyplot as plt
 import numpy as np
-import pytest
 import tol_colors as tc
 from matplotlib.colors import to_hex
 
@@ -330,7 +327,6 @@ EXISTING_ROLES = (
     "measured",
     "model",
     "reference",
-    "envelope",
     "alert",
     "highlight",
 )
@@ -533,33 +529,6 @@ class TestDistinctiveRoles:
         """brand_intensity stays the brand ramp, distinct from probability."""
         hwostyle.use("light")
         assert _samples("brand_intensity") != _samples("probability")
-
-
-class TestDeprecatedRoles:
-    """high_dynamic_range and the fixed envelope role warn but still resolve."""
-
-    def test_high_dynamic_range_warns_and_names_the_replacement(self):
-        """Reading the colormap warns and points at intensity and readouts."""
-        hwostyle.use("dark")
-        with pytest.warns(DeprecationWarning, match="intensity.*readouts"):
-            value = hwostyle.cmaps.high_dynamic_range
-        assert value == "inferno"
-
-    def test_envelope_warns_by_attribute_and_by_key(self):
-        """Both access paths warn and name the parent series color."""
-        hwostyle.use("dark")
-        with pytest.warns(DeprecationWarning, match="parent series color"):
-            attr = hwostyle.roles.envelope
-        with pytest.warns(DeprecationWarning, match="parent series color"):
-            item = hwostyle.roles["envelope"]
-        assert attr == item == hwostyle.palette.purple
-
-    def test_as_dict_does_not_warn(self):
-        """Listing every role is not a use of the deprecated one."""
-        hwostyle.use("dark")
-        with warnings.catch_warnings():
-            warnings.simplefilter("error")
-            hwostyle.roles.as_dict  # noqa: B018
 
 
 def test_paper_roles_use_tol_muted_and_never_repeat():
